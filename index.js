@@ -1,9 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-
-const regex = /\[([^[\]]*?)\]\((https?:\/\/[^\.s?#].[^\s]*)\)/gm;
+//import chalk from 'chalk';
+ 
+ 
+export function extrairLinks(caminhoDosLinks) {
+  const regex = /\[([^[\]]*?)\]\((https?:\/\/[^\.s?#].[^\s]*)\)/gm;
    const enconding = 'utf-8';
-function extrairLinks(caminhoDosLinks) {
   return new Promise ((resolve, reject) => {
 fs.readFile(caminhoDosLinks, enconding, (err, data) => {
   if(err) {
@@ -19,122 +21,53 @@ fs.readFile(caminhoDosLinks, enconding, (err, data) => {
   }
 });
 });
-}
-// extrairLinks('src/texto.md')
-//   .then((conteudo) => console.log(conteudo))
-//   .catch((err) => console.error(err));
+};
 
-export function calculo (links) {
-  const totalLinks = links.length;
-  const uniqueLinks = new Set(links.map(link => link.href)).size;
-  const brokenLinks = links.filter(link => link.ok === 'fail').length; 
-  const stats = {
-        totalLinks,
-        uniqueLinks,
-        brokenLinks,
+const pathFile = process.argv[2];
+
+export function mdLinks (pathFile, options = { }) {
+  const tamanhoArquivo = fs.statSync(pathFile).size;
+   const extensao = path.extname(pathFile);
+  if(tamanhoArquivo === 0) {
+  /*throw Error(chalk.red('\u2718 O arquivo está ' + chalk.underline.bold('vazio')  + ' \u2718' )*/
+  throw Error('O arquivo está vazio')
+
+  }
+  if(extensao !== '.md'){
+   /* throw new Error(
+     ' chalk.red('\u2718' +  chalk.underline(' Extensão inválida,') + ' o arquivo não corresponde ao formato ' + '' + chalk.bold('Markdown \u2718')'  )
+    );*/
+    throw new Error(
+      'Extensão inválida'  )
+  }
+ return new Promise((resolve, reject) => {
+extrairLinks(pathFile)
+.then((links) => {
+  if (options.validate) {
+    const promises = links.map((link) => {
+      return fetch(link.href)
+        .then((response) => {
+          link.status = response.status;
+          link.ok = response.ok;
+          return link;
+        })
+        .catch((error) => {
+         link.status = error.status || 'Link não encontrado';
+          link.ok = error.ok;
+          return link;
+        });
+    });
+    Promise.all(promises)
+    .then((results) => {
+    resolve(results);
+    }).catch((error) => {
+      reject(error);
+      });
+      } else {
+        resolve(links);
+        }}
+        ).catch((error) => {
+         reject(error);
+         });
+       });
       };
-      if (brokenLinks > 0){
-        stats.brokenLinks = brokenLinks
-      }
-
-  /*console.log(`Total: ${stats.totalLinks}`);
-  console.log(`Unique: ${stats.uniqueLinks}`);
-  console.log(`Broken: ${stats.brokenLinks}`);*/
-
-  return stats;
-}
-
-export function mdLinks (pathFile, options = {validate: false, stats: false}) {
-  const tamanhoArquivo = fs.statSync(pathFile).size;
-   const extensao = path.extname(pathFile);
-  if(tamanhoArquivo === 0){
-  throw new Error(`O arquivo ${pathFile} está vazio`);
-  }
-  if(extensao !== '.md'){
-    throw new Error('Extensão inválida');
-  }
- return new Promise((resolve, reject) => {
-extrairLinks(pathFile).then((links) => {
-  if (options.validate) {
-    const promises = links.map((link) => {
-      return fetch(link.href)
-        .then((response) => {
-          link.status = response.status;
-          link.ok = response.ok //? "ok" : "fail";
-          return link;
-        })
-        .catch((error) => {
-          console.log(error)
-          link.status = "error";
-          link.ok = "fail";
-          return link;
-        });
-    });
-    Promise.all(promises)
-      .then((result) => {
-        resolve(result);
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  } else {
-    resolve(links);
-  }
-})
-.catch((err) => {
-  reject(err);
-});
-});
-}
-
-/*export function mdLinks2 (pathFile, options = {validate: false }) {
-  const tamanhoArquivo = fs.statSync(pathFile).size;
-   const extensao = path.extname(pathFile);
-  if(tamanhoArquivo === 0){
-  throw new Error(`O arquivo ${pathFile} está vazio`);
-  }
-  if(extensao !== '.md'){
-    throw new Error('Extensão inválida');
-  }
- return new Promise((resolve, reject) => {
-extrairLinks(pathFile).then((links) => {
-  if (options.validate) {
-    const promises = links.map((link) => {
-      return fetch(link.href)
-        .then((response) => {
-          link.status = response.status;
-          link.ok = response.ok //? 'ok' : 'fail';
-          return link;
-        })
-        .catch((error) => {
-          console.log(error)
-          //link.status = 'error';
-          link.ok = 'fail';
-          return link;
-        });
-    });
-    Promise.all(promises)
-      .then((result) => {
-        resolve(result);
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  } else {
-    resolve(links);
-  }
-})
-.catch((err) => {
-  reject(err);
-});
-});
-
-  
-}
-// mdLinks('src/texto.md', {validate: true})
-// .then((links) => {
-//   console.log(links);
-// }).catch((err) => {
-//   console.error(err);
-// });
-*/

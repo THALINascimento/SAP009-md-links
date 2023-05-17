@@ -1,16 +1,13 @@
 {
-  "name": "md-links",
-  "version": "0.1.0",
+  "name": "md-links-thalita-nascimento",
+  "version": "0.1.1",
   "type": "module",
   "bin": {
     "md-links": "cli.js"
   },
- 
   "jest": {
     "verbose": true
   },
-  
-  
   "engines": {
     "node": ">=16.x"
   },
@@ -24,9 +21,11 @@
   "directories": {
     "test": "test"
   },
-  "scripts": { 
-    "test": "jest"
-  }, 
+  "scripts": {
+  "test": "jest --verbose --coverage", 
+  "eslint": "eslint *.js test/",
+  "pretest": "npm run eslint"
+ },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/THALINascimento/SAP009-md-links.git"
