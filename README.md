@@ -65,7 +65,7 @@ Para instalar o módulo, execute o seguinte comando: <code> npm install md-links
 <li>
 <p dir="auto"><code>Listagem de links</code>: exibe os links encontrados nos arquivos Markdown, mostrando a rota do arquivo onde foi encontrado o link, a URL encontrada e o texto que aparece dentro do link.</p>
 </li>
-___________________________________________________________________________________________________________
+___________________________________________________________________________________
 
 ```sh
 $ md-links ./pasta/texto.md
